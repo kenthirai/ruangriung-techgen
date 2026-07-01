@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { MessageSquare, Send, History as HistoryIcon, Copy, Check, Settings2 } from 'lucide-react'
+import { Loader2, MessageSquare, Send, History as HistoryIcon, Copy, Check, Settings2 } from 'lucide-react'
 import { useGenerateText } from '../hooks/useGeneration'
 import { useHistory } from '../hooks/useHistory'
 import { ModelSelector } from '../components/ModelSelector'
