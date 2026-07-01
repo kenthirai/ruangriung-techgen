@@ -5,7 +5,7 @@ compatibility_date = "2024-12-18"
 [[d1_databases]]
 binding = "DB"
 database_name = "pollinations-db"
-database_id = "your-database-id"
+database_id = "bf399d96-0dac-4b69-85e5-7dd4a1d3e196"
 
 [triggers]
 crons = ["0 * * * *"] # Run hourly to clean up old history
