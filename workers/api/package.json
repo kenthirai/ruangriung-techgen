@@ -1,0 +1,31 @@
+{
+	"name": "api",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.12.4",
+		"@cloudflare/workers-types": "^4.20260630.1",
+		"typescript": "^5.9.3",
+		"vitest": "~3.2.0",
+		"wrangler": "^3.114.17"
+	},
+	"description": "",
+	"main": "index.js",
+	"directories": {
+		"test": "test"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "commonjs",
+	"dependencies": {
+		"hono": "^4.12.27"
+	}
+}

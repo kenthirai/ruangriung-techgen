@@ -1,0 +1,608 @@
+<USER_REQUEST>
+letakkan di disk E:\ dengan nama ruangriun-techgen.
+
+ini scret api key saya :sk_yZ1u2t02FttWcZRE6cosXZF4kgqGb266
+dan ini public api key saya:
+pk_x1HgyzwMRjvFB6KZ
+
+catat di dev.vars dan .env, berikan login dengan google, berikan login dengan github.
+
+saat ini saya sudah login wrangler
+dan ini repository saya
+https://github.com/kenthirai/ruangriung-techgen.git
+
+## 🚀 PROMPT: Pollinations.ai Web Generator (Vite + React + Cloudflare D1)
+
+You are an expert full-stack developer. Build a modern, feature-rich web application for generating **text, images, videos, audio, and embeddings** using the Pollinations.ai API.
+
+### 📋 Project Requirements
+
+**Tech Stack:**
+- **Frontend:** Vite + React (TypeScript), Tailwind CSS, Framer Motion/GSAP for animations
+- **Backend/API:** Cloudflare Workers with Hono.js (or Next.js API routes if simpler)
+- **Database:** Cloudflare D1 (SQLite) — store generation history, user sessions, favorites
+- **Auth:** Pollinations.ai BYOP (Bring Your Own Pollen) flow — `pk_` publishable keys + redirect/device flow
+- **State Management:** Zustand or Jotai
+- **HTTP Client:** TanStack Query (React Query) for caching + optimistic updates
+- **UI Components:** shadcn/ui or Radix UI primitives
+
+### 🧩 Core Features
+
+#### 1. **Dashboard / Landing Page**
+- Hero section with live demo examples
+- Quick-action cards: "Generate Image", "Generate Video", "Generate Audio", "Chat", "Embeddings"
+- Live stats: total generations, top models, pollen balance (if authenticated)
+- Gallery of recent public generations (from the API or your DB)
+
+#### 2. **Authentication (BYOP Flow)**
+- **Option A (Web Redirect):** Button → `https://enter.pollinations.ai/authorize?redirect_uri=...&client_id=pk_...` → callback extracts `#api_key=sk_...`
+- **Option B (Device Flow):** CLI-style code entry for headless/bot use
+- Store the user-authorized `sk_...` key securely in memory/localStorage (session-only)
+- Show user profile (from `/account/profile`) after auth — avatar, username, tier, balance
+- Auto-refresh balance via `/account/balance` every 30s
+
+#### 3. **Text Generation**
+- Chat interface (OpenAI-compatible `/v1/chat/completions`)
+- Model selector (dynamic from `GET /text/models`)
+- Streaming responses (SSE or fetch with `stream: true`)
+- Support for: tools, vision, structured outputs, reasoning
+- Quick-presets: "Summarize", "Code", "Brainstorm", "Translate"
+- History saved to D1 per user (session_id or user_id)
+
+#### 4. **Image Generation**
+- Prompt input with optional negative prompt
+- Model selector (dynamic from `GET /image/models`) — flux, kontext, nanobanana, seedream, ideogram, etc.
+- Aspect ratio presets (1:1, 16:9, 9:16, 4:3, 3:4)
+- Image-to-image: upload reference image (multipart)
+- Advanced: seed, quality, transparency, safety filters
+- Gallery view: grid of generated images with download/share/delete
+- Batch generation: generate 2–8 variations in parallel
+
+#### 5. **Video Generation**
+- Prompt input
+- Model selector (dynamic from `GET /image/models` — video models: veo, seedance, wan, grok-video-pro, etc.)
+- Duration slider (4–10s, model-dependent)
+- Aspect ratio presets
+- Optional: reference image upload for video-to-video
+- Preview player with download
+
+#### 6. **Audio Generation**
+- **TTS (Text-to-Speech):** Prompt → voice selector (dynamic from `GET /audio/models`) → MP3 preview + download
+- **Music Generation:** Prompt → model selector (elevenmusic, stable-audio) → preview
+- **Transcription:** Upload audio file → `/v1/audio/transcriptions` → returns text
+- Voice list: alloy, echo, fable, onyx, nova, shimmer, ash, ballad, coral, sage, verse, rachel, domi, bella, elli, charlotte, dorothy, sarah, emily, lily, matilda, adam, antoni, arnold, josh, sam, daniel, charlie, james, fin, callum, liam, george, brian, bill
+
+#### 7. **Embeddings**
+- Input text / image / audio / video
+- Model selector (gemini-2, openai-3-small, openai-3-large, cohere-embed-v4, qwen3-embedding-8b)
+- Dimensions selector (model-dependent)
+- Show vector preview (first 10 dimensions) + copy to clipboard
+- Batch input support (up to 32 items)
+
+#### 8. **Model Browser**
+- Dynamic model listing from `GET /models` (or `/v1/models`)
+- Filter by type: text, image, video, audio, embedding
+- Show: model name, capabilities (tool_calling, reasoning, web_search, code_execution), pricing, context window, modalities
+- Search/filter by name or capability
+
+#### 9. **History & Favorites (D1)**
+- Every generation saved to Cloudflare D1
+- Fields: id, user_id (or session_id), type (text/image/video/audio/embedding), model, prompt, result_url, created_at, metadata (params), is_favorite
+- Paginated history view
+- Favorites star toggle
+- Delete individual or bulk delete
+- Export history as JSON
+
+#### 10. **Account Dashboard**
+- Pollen balance with visual meter
+- Usage history (`/account/usage`) with cost breakdown per request
+- Daily usage chart (`/account/usage/daily`)
+- Quests progress (`/account/quests`)
+- API key management: list keys, create new (secret/publishable), revoke
+- For publishable keys: redirect URIs, earnings toggle
+
+#### 11. **Media Storage Integration**
+- Upload to `https://media.pollinations.ai/upload` with auth
+- Retrieve by content hash: `GET /{hash}`
+- Show uploaded media in gallery with metadata
+
+#### 12. **Safety Filters**
+- Toggle safety: `privacy`, `secrets`, `sexual`, `violence`, `shield`
+- Per-request safety via query param, JSON body, or `Pollinations-Safe` header
+- Show redacted content indicators from `X-Safety-Redacted` header
+
+#### 13. **Realtime Voice (WebSocket)**
+- WebSocket connection to `wss://gen.pollinations.ai/v1/realtime?model=gpt-realtime-2`
+- Two-way voice conversation with mic + audio output
+- Session management: update instructions, turn detection
+- Browser: use `<audio>` element with MediaStreamDestination for echo cancellation
+
+#### 14. **Public Stats**
+- Show platform stats from Tinybird:
+  - `public_model_stats.json` — per-model usage over 7 days
+  - `model_health.json` — health metrics (2xx/4xx/5xx, latency)
+  - `weekly_health_stats.json` — service availability over time
+  - `app_top_weekly.json` — top community apps
+  - `app_directory_public.json` — community app directory
+
+### 🗄️ Database Schema (Cloudflare D1)
+
+```sql
+-- Users table (optional, if you want to track users beyond session)
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,
+  github_username TEXT,
+  email TEXT,
+  avatar_url TEXT,
+  created_at INTEGER DEFAULT (unixepoch())
+);
+
+-- Sessions (for anonymous usage tracking)
+CREATE TABLE sessions (
+  id TEXT PRIMARY KEY,
+  created_at INTEGER DEFAULT (unixepoch()),
+  last_active INTEGER DEFAULT (unixepoch())
+);
+
+-- Generations history
+CREATE TABLE generations (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  user_id TEXT,  -- nullable if using sessions only
+  type TEXT NOT NULL, -- 'text' | 'image' | 'video' | 'audio' | 'embedding'
+  model TEXT NOT NULL,
+  prompt TEXT NOT NULL,
+  negative_prompt TEXT,
+  result_url TEXT,
+  result_data TEXT, -- JSON blob for structured responses (chat, embeddings)
+  params TEXT, -- JSON of all generation params
+  cost REAL, -- pollen cost
+  is_favorite INTEGER DEFAULT 0,
+  created_at INTEGER DEFAULT (unixepoch()),
+  FOREIGN KEY (session_id) REFERENCES sessions(id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Favorites (alternative to is_favorite flag)
+CREATE TABLE favorites (
+  id TEXT PRIMARY KEY,
+  generation_id TEXT NOT NULL,
+  session_id TEXT NOT NULL,
+  created_at INTEGER DEFAULT (unixepoch()),
+  FOREIGN KEY (generation_id) REFERENCES generations(id),
+  FOREIGN KEY (session_id) REFERENCES sessions(id)
+);
+
+-- Models cache (sync from API periodically)
+CREATE TABLE models_cache (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL, -- 'text' | 'image' | 'video' | 'audio' | 'embedding'
+  name TEXT NOT NULL,
+  capabilities TEXT, -- JSON
+  pricing TEXT, -- JSON
+  metadata TEXT, -- JSON (context_window, modalities, voices, etc.)
+  updated_at INTEGER DEFAULT (unixepoch())
+);
+
+-- User API keys (if you're managing keys on behalf of users)
+CREATE TABLE user_api_keys (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  key_prefix TEXT NOT NULL, -- 'sk_' or 'pk_'
+  key_hash TEXT NOT NULL, -- hashed for security
+  name TEXT,
+  redirect_uris TEXT, -- JSON array
+  earnings_enabled INTEGER DEFAULT 0,
+  created_at INTEGER DEFAULT (unixepoch()),
+  expires_at INTEGER,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Indexes
+CREATE INDEX idx_generations_session ON generations(session_id);
+CREATE INDEX idx_generations_user ON generations(user_id);
+CREATE INDEX idx_generations_type ON generations(type);
+CREATE INDEX idx_generations_created ON generations(created_at DESC);
+CREATE INDEX idx_favorites_session ON favorites(session_id);
+```
+
+### 🔌 API Integration Details
+
+#### Pollinations.ai Base URL: `https://gen.pollinations.ai`
+
+**Authentication:**
+- Header: `Authorization: Bearer YOUR_API_KEY`
+- Query param: `?key=YOUR_API_KEY`
+
+**Key Endpoints to Implement:**
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/v1/chat/completions` | POST | Text generation (OpenAI-compatible) |
+| `/text/{prompt}` | GET | Quick text generation |
+| `/image/{prompt}` | GET | Image generation |
+| `/video/{prompt}` | GET | Video generation |
+| `/audio/{text}` | GET | TTS generation |
+| `/v1/audio/speech` | POST | OpenAI-compatible TTS |
+| `/v1/audio/transcriptions` | POST | Speech-to-text |
+| `/v1/embeddings` | POST | Embedding generation |
+| `/models` | GET | All models with metadata |
+| `/v1/models` | GET | OpenAI-compatible model list |
+| `/text/models` | GET | Text models only |
+| `/image/models` | GET | Image/video models only |
+| `/audio/models` | GET | Audio models only |
+| `/embeddings/models` | GET | Embedding models only |
+| `/account/profile` | GET | User profile |
+| `/account/balance` | GET | Pollen balance |
+| `/account/usage` | GET | Usage history |
+| `/account/usage/daily` | GET | Daily aggregated usage |
+| `/account/quests` | GET | Quests status |
+| `/account/key` | GET | Current key info |
+| `/account/keys` | POST | Create new API key |
+| `/account/keys` | DELETE | Revoke API key |
+| `/media.pollinations.ai/upload` | POST | Upload media |
+| `/v1/realtime` | WS | Realtime voice WebSocket |
+
+### 🎨 UI/UX Requirements
+
+**Design System:**
+- Dark mode by default with light mode toggle
+- Responsive: mobile-first, tablet, desktop
+- Glass-morphism or neubrutalism aesthetic (your choice)
+- Smooth animations for: loading states, model switching, gallery transitions
+- Keyboard shortcuts: `Ctrl+Enter` to generate, `Esc` to close modals, `Ctrl+K` for command palette
+
+**Pages/Routes:**
+- `/` — Dashboard/Landing
+- `/generate/text` — Text generation
+- `/generate/image` — Image generation
+- `/generate/video` — Video generation
+- `/generate/audio` — Audio generation
+- `/generate/embeddings` — Embeddings
+- `/models` — Model browser
+- `/history` — Generation history
+- `/favorites` — Favorites gallery
+- `/account` — Account dashboard
+- `/auth` — Auth callback handler
+- `/stats` — Public stats
+
+**Components:**
+- `ModelSelector` — dynamic dropdown with search, grouped by type
+- `PromptInput` — multi-line textarea with expand, auto-height
+- `ParameterControls` — sliders, toggles, dropdowns for model-specific params
+- `GenerationCard` — display result with metadata, download, favorite, delete
+- `GalleryGrid` — responsive grid with masonry or uniform layout
+- `HistoryList` — paginated list with filters
+- `BalanceMeter` — visual pollen balance with usage breakdown
+- `ModelChip` — badge showing model name with capability icons
+- `VoiceSelector` — audio preview on hover
+- `MediaPreview` — image/video/audio player with controls
+- `UploadZone` — drag-and-drop for image-to-image, video-to-video, audio transcription
+- `SafetyToggle` — safety filter selector
+- `StreamingText` — typewriter effect for streaming chat responses
+
+### 💻 Code Structure
+
+```
+src/
+├── main.tsx                    # App entry
+├── App.tsx                     # Root router
+├── config/
+│   ├── api.ts                  # API base URL, endpoints
+│   └── models.ts               # Model type definitions
+├── lib/
+│   ├── api-client.ts           # Fetch wrapper with auth
+│   ├── pollinations.ts         # All API methods
+│   ├── db.ts                   # D1 client (Cloudflare)
+│   └── utils.ts                # Helpers
+├── hooks/
+│   ├── useAuth.ts              # BYOP auth state
+│   ├── useBalance.ts           # Pollen balance + refresh
+│   ├── useModels.ts            # Fetch & cache models
+│   ├── useGeneration.ts        # Generate + save to DB
+│   ├── useHistory.ts           # History CRUD
+│   └── useWebSocket.ts         # Realtime voice
+├── stores/
+│   ├── authStore.ts            # Zustand: auth state
+│   ├── generationStore.ts      # Current generation state
+│   └── uiStore.ts              # UI state (modals, theme)
+├── components/
+│   ├── ui/                     # shadcn/ui primitives
+│   ├── layout/
+│   │   ├── Header.tsx
+│   │   ├── Sidebar.tsx
+│   │   └── Footer.tsx
+│   ├── generation/
+│   │   ├── ModelSelector.tsx
+│   │   ├── PromptInput.tsx
+│   │   ├── ParameterControls.tsx
+│   │   ├── GenerationCard.tsx
+│   │   └── GalleryGrid.tsx
+│   ├── auth/
+│   │   ├── LoginButton.tsx
+│   │   ├── AuthCallback.tsx
+│   │   └── DeviceFlow.tsx
+│   └── shared/
+│       ├── BalanceMeter.tsx
+│       ├── ModelChip.tsx
+│       └── VoiceSelector.tsx
+├── pages/
+│   ├── Dashboard.tsx
+│   ├── GenerateText.tsx
+│   ├── GenerateImage.tsx
+│   ├── GenerateVideo.tsx
+│   ├── GenerateAudio.tsx
+│   ├── GenerateEmbeddings.tsx
+│   ├── Models.tsx
+│   ├── History.tsx
+│   ├── Favorites.tsx
+│   ├── Account.tsx
+│   ├── Stats.tsx
+│   └── AuthCallback.tsx
+├── types/
+│   └── index.ts                # All TypeScript types
+├── workers/
+│   └── api/                    # Cloudflare Worker (Hono)
+│       ├── index.ts
+│       ├── routes/
+│       │   ├── auth.ts
+│       │   ├── generations.ts
+│       │   ├── history.ts
+│       │   └── models.ts
+│       └── db/
+│           └── schema.sql
+├── styles/
+│   └── globals.css
+└── vite.config.ts
+```
+
+### 🔧 Cloudflare Worker (API Backend)
+
+The Worker handles:
+1. **Auth proxy** — forward BYOP auth, store user sessions
+2. **Generation history** — CRUD operations on D1
+3. **Model cache** — periodically sync models from Pollinations API
+4. **Rate limiting** — per IP/session (optional)
+5. **CORS** — for frontend
+
+**Hono.js example structure:**
+```typescript
+// workers/api/index.ts
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { authRoutes } from './routes/auth'
+import { generationRoutes } from './routes/generations'
+import { historyRoutes } from './routes/history'
+import { modelRoutes } from './routes/models'
+
+const app = new Hono()
+
+app.use('*', cors())
+app.route('/api/auth', authRoutes)
+app.route('/api/generations', generationRoutes)
+app.route('/api/history', historyRoutes)
+app.route('/api/models', modelRoutes)
+
+export default app
+```
+
+### 🔐 Authentication Flow Implementation
+
+**Web Redirect Flow:**
+```typescript
+// 1. User clicks "Connect Wallet" / "Sign in with Pollinations"
+const redirectUri = `${window.location.origin}/auth/callback`
+const clientId = import.meta.env.VITE_POLLINATIONS_PK_KEY
+const authUrl = `https://enter.pollinations.ai/authorize?redirect_uri=${redirectUri}&client_id=${clientId}&scope=usage&models=flux,openai,gptimage&budget=10&expiry=7`
+window.location.href = authUrl
+
+// 2. Callback page extracts key from URL fragment
+// URL: https://yourapp.com/auth/callback#api_key=sk_abc123xyz
+const hash = new URLSearchParams(window.location.hash.slice(1))
+const apiKey = hash.get('api_key')
+if (apiKey) {
+  localStorage.setItem('pollinations_api_key', apiKey)
+  // Redirect to dashboard
+}
+
+// 3. Use the key for all API calls
+const headers = { 'Authorization': `Bearer ${localStorage.getItem('pollinations_api_key')}` }
+```
+
+**Device Flow (for headless/CLI):**
+```typescript
+// 1. Request device code
+const { device_code, user_code, verification_uri } = await fetch(
+  'https://enter.pollinations.ai/api/device/code',
+  { method: 'POST', body: JSON.stringify({ client_id: 'pk_...', scope: 'generate' }) }
+)
+// Show user_code to user with instructions
+
+// 2. Poll for token
+const poll = async () => {
+  const res = await fetch('https://enter.pollinations.ai/api/device/token', {
+    method: 'POST',
+    body: JSON.stringify({ device_code })
+  })
+  const data = await res.json()
+  if (data.access_token) {
+    localStorage.setItem('pollinations_api_key', data.access_token)
+    return data.access_token
+  }
+  if (data.error === 'authorization_pending') {
+    await sleep(5000)
+    return poll()
+  }
+  throw new Error(data.error)
+}
+```
+
+### 📱 React Query Integration
+
+```typescript
+// hooks/useGeneration.ts
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { generateImage, generateVideo, generateText } from '@/lib/pollinations'
+
+export function useGenerateImage() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: generateImage,
+    onSuccess: (data) => {
+      // Invalidate history cache
+      queryClient.invalidateQueries({ queryKey: ['history'] })
+      // Invalidate balance cache
+      queryClient.invalidateQueries({ queryKey: ['balance'] })
+    },
+  })
+}
+```
+
+### 🎯 Model Loading
+
+Dynamic model loading from API endpoints:
+
+```typescript
+// lib/pollinations.ts
+export async function fetchModels(type?: 'text' | 'image' | 'audio' | 'embedding') {
+  const endpoint = type 
+    ? `https://gen.pollinations.ai/${type}/models`
+    : 'https://gen.pollinations.ai/models'
+  
+  const res = await fetch(endpoint)
+  return res.json()
+}
+
+// Store in D1 cache with TTL (e.g., 1 hour)
+// Then serve from cache for fast UI rendering
+```
+
+### 📦 Environment Variables
+
+```env
+# .env
+VITE_POLLINATIONS_API_URL=https://gen.pollinations.ai
+VITE_POLLINATIONS_PK_KEY=pk_your_publishable_key_here
+VITE_MEDIA_BASE_URL=https://media.pollinations.ai
+VITE_APP_NAME=My Pollinations Generator
+VITE_APP_URL=https://yourapp.com
+
+# Cloudflare
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+CLOUDFLARE_DATABASE_ID=your_d1_database_id
+CLOUDFLARE_API_TOKEN=your_api_token
+```
+
+### 🚀 Deployment
+
+1. **Frontend:** Deploy to Cloudflare Pages or Vercel
+2. **Worker:** Deploy to Cloudflare Workers with `wrangler deploy`
+3. **Database:** Migrate D1 with `wrangler d1 migrations apply`
+
+**wrangler.toml:**
+```toml
+name = "pollinations-api"
+main = "workers/api/index.ts"
+compatibility_date = "2024-12-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pollinations-db"
+database_id = "your-database-id"
+```
+
+### ✅ Additional Requirements
+
+- **Error Handling:** Consistent error UI with `error.type` handling from Pollinations API (400, 401, 402, 403, 500)
+- **Loading States:** Skeleton loaders, progress bars for generation
+- **Responsive:** Works on mobile, tablet, desktop
+- **Accessibility:** ARIA labels, keyboard navigation, screen reader support
+- **Performance:** Lazy loading, code splitting, image optimization
+- **Analytics:** Optional — track usage with Plausible or Umami (self-hosted)
+- **Offline:** Service worker for basic offline support (show cached history)
+
+### 📝 Example: Generate Image Component
+
+```tsx
+// pages/GenerateImage.tsx
+import { useState } from 'react'
+import { useGenerateImage } from '@/hooks/useGeneration'
+import { ModelSelector } from '@/components/generation/ModelSelector'
+import { PromptInput } from '@/components/generation/PromptInput'
+import { GalleryGrid } from '@/components/generation/GalleryGrid'
+
+export function GenerateImage() {
+  const [prompt, setPrompt] = useState('')
+  const [model, setModel] = useState('flux')
+  const [aspectRatio, setAspectRatio] = useState('1:1')
+  const { mutate, data, isPending } = useGenerateImage()
+
+  const handleGenerate = () => {
+    mutate({ prompt, model, width: 1024, height: 1024, aspectRatio })
+  }
+
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold">Generate Image</h1>
+      
+      <div className="mt-6 space-y-4">
+        <ModelSelector 
+          type="image" 
+          value={model} 
+          onChange={setModel} 
+        />
+        
+        <PromptInput 
+          value={prompt} 
+          onChange={setPrompt} 
+          placeholder="A cat in space..." 
+          onCtrlEnter={handleGenerate}
+        />
+        
+        <div className="flex gap-4">
+          <AspectRatioSelector value={aspectRatio} onChange={setAspectRatio} />
+          <button 
+            onClick={handleGenerate} 
+            disabled={isPending || !prompt}
+            className="btn-primary"
+          >
+            {isPending ? 'Generating...' : 'Generate'}
+          </button>
+        </div>
+      </div>
+
+      {data && <GalleryGrid images={data} />}
+    </div>
+  )
+}
+```
+
+### 🧪 Testing
+
+- Unit tests: Vitest
+- E2E tests: Playwright
+- API tests: Postman/Insomnia collection
+
+---
+
+### 🎯 Deliverables
+
+Generate the complete project with:
+
+1. Full Vite + React + TypeScript frontend
+2. Cloudflare Worker with Hono.js + D1 integration
+3. All 13+ core features implemented
+4. Dynamic model loading from Pollinations API
+5. BYOP authentication flow (both redirect and device)
+6. Generation history saved to D1 with favorites
+7. Responsive, modern UI with animations
+8. Comprehensive error handling and loading states
+9. Production-ready deployment configuration
+10. README with setup instructions
+
+**Start building now.** Prioritize the image generation and history features first, then expand to video, audio, embeddings, and realtime voice. Use TanStack Query for data fetching, Zustand for state, and Tailwind for styling. The UI should feel polished, fast, and delightful to use.
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-01T01:14:51+07:00.
+</ADDITIONAL_METADATA>

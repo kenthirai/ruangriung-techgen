@@ -1,0 +1,11 @@
+name = "pollinations-api"
+main = "src/index.ts"
+compatibility_date = "2024-12-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pollinations-db"
+database_id = "your-database-id"
+
+[triggers]
+crons = ["0 * * * *"] # Run hourly to clean up old history
