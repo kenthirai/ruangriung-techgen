@@ -23,8 +23,8 @@ adminRoutes.use('*', async (c, next) => {
     // Pass payload to handlers
     c.set('jwtPayload', payload)
     await next()
-  } catch (err) {
-    return c.json({ error: 'Unauthorized: Invalid token' }, 401)
+  } catch (err: any) {
+    return c.json({ error: 'Unauthorized: Invalid token', details: err.message }, 401)
   }
 })
 

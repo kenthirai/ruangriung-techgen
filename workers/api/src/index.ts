@@ -10,7 +10,11 @@ import { Env } from './types'
 
 const app = new Hono<{ Bindings: Env }>()
 
-app.use('*', cors())
+app.use('*', cors({
+  origin: '*',
+  allowHeaders: ['Content-Type', 'Authorization'],
+  allowMethods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']
+}))
 
 app.route('/api/auth', authRoutes)
 app.route('/api/generations', generationRoutes)
