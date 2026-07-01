@@ -6,6 +6,10 @@ export const adminRoutes = new Hono<{ Bindings: Env }>()
 
 // Middleware to check JWT admin token
 adminRoutes.use('*', async (c, next) => {
+  if (c.req.method === 'OPTIONS') {
+    return await next()
+  }
+
   const authHeader = c.req.header('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return c.json({ error: 'Unauthorized' }, 401)
