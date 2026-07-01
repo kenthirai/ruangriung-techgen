@@ -1,13 +1,35 @@
 import { useAuthStore } from '../stores/authStore'
 
-const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
 const API_BASE = `${WORKER_URL}/api/proxy`
 
-function getHeaders() {
-  const apiKey = useAuthStore.getState().apiKey
+// Smart Router headers
+function getHeaders(model?: string) {
+  const { apiKey, openAiApiKey, geminiApiKey, deepseekApiKey } = useAuthStore.getState()
   const headers: Record<string, string> = {
     'Content-Type': 'application/json'
   }
+  
+  if (model) {
+    if (model.startsWith('gpt-')) {
+      headers['X-Provider'] = 'openai'
+      if (openAiApiKey) headers['X-Provider-Key'] = openAiApiKey
+      return headers
+    }
+    if (model.startsWith('gemini-')) {
+      headers['X-Provider'] = 'gemini'
+      if (geminiApiKey) headers['X-Provider-Key'] = geminiApiKey
+      return headers
+    }
+    if (model.startsWith('deepseek-')) {
+      headers['X-Provider'] = 'deepseek'
+      if (deepseekApiKey) headers['X-Provider-Key'] = deepseekApiKey
+      return headers
+    }
+  }
+
+  // Fallback to Pollinations
+  headers['X-Provider'] = 'pollinations'
   if (apiKey) {
     headers['Authorization'] = `Bearer ${apiKey}`
   }
@@ -23,7 +45,7 @@ export async function generateText(messages: {role: string, content: string}[], 
 
   const res = await fetch(`${API_BASE}/v1/chat/completions`, {
     method: 'POST',
-    headers: getHeaders(),
+    headers: getHeaders(model),
     body: JSON.stringify({
       model,
       messages: payloadMessages
@@ -137,7 +159,7 @@ export async function fetchModels(type: string) {
 }
 
 export async function fetchHistory(sessionId: string) {
-  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
   const res = await fetch(`${WORKER_URL}/api/generations/history?session_id=${sessionId}`)
   if (!res.ok) throw new Error('Failed to fetch history')
   const json = await res.json()
@@ -145,7 +167,7 @@ export async function fetchHistory(sessionId: string) {
 }
 
 export async function saveGeneration(data: { session_id: string, type: string, model: string, prompt: string, result_url?: string }) {
-  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
   const res = await fetch(`${WORKER_URL}/api/generations`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -156,7 +178,7 @@ export async function saveGeneration(data: { session_id: string, type: string, m
 }
 
 export async function toggleFavorite(id: string, isFavorite: boolean) {
-  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
   const res = await fetch(`${WORKER_URL}/api/generations/${id}/favorite`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -167,7 +189,7 @@ export async function toggleFavorite(id: string, isFavorite: boolean) {
 }
 
 export async function deleteGeneration(id: string) {
-  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
   const res = await fetch(`${WORKER_URL}/api/generations/${id}`, {
     method: 'DELETE'
   })
@@ -176,7 +198,7 @@ export async function deleteGeneration(id: string) {
 }
 
 export async function clearHistory(sessionId: string, type?: string) {
-  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+  const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
   let url = `${WORKER_URL}/api/generations/history?session_id=${sessionId}`
   if (type) {
     url += `&type=${type}`

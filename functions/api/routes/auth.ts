@@ -40,6 +40,10 @@ authRoutes.post('/login/google', async (c) => {
         return c.json({ success: false, message: 'Admin access expired.' }, 403)
       }
     }
+    // Update last_login timestamp
+    await c.env.DB.prepare('UPDATE admins SET last_login = ? WHERE email = ?')
+      .bind(Math.floor(Date.now() / 1000), adminQuery.email)
+      .run()
 
     // Generate JWT token
     const secret = c.env.JWT_SECRET || c.env.ADMIN_PASSWORD || 'default_secret_for_dev'
@@ -47,7 +51,7 @@ authRoutes.post('/login/google', async (c) => {
       email: adminQuery.email,
       role: adminQuery.role,
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7 // 7 days
-    }, secret)
+    }, secret, 'HS256')
 
     return c.json({
       success: true,

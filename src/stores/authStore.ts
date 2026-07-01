@@ -10,6 +10,9 @@ export interface AdminUser {
 interface AuthState {
   isAuthenticated: boolean
   apiKey: string | null
+  geminiApiKey: string | null
+  openAiApiKey: string | null
+  deepseekApiKey: string | null
   
   // API Key User info
   user: {
@@ -22,6 +25,9 @@ interface AuthState {
   adminUser: AdminUser | null
 
   setApiKey: (key: string) => void
+  setGeminiApiKey: (key: string) => void
+  setOpenAiApiKey: (key: string) => void
+  setDeepseekApiKey: (key: string) => void
   loginAsAdmin: (token: string, user: AdminUser) => void
   logout: () => void
   logoutAdmin: () => void
@@ -30,6 +36,9 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: !!localStorage.getItem('pollinations_api_key'),
   apiKey: localStorage.getItem('pollinations_api_key'),
+  geminiApiKey: localStorage.getItem('gemini_api_key'),
+  openAiApiKey: localStorage.getItem('openai_api_key'),
+  deepseekApiKey: localStorage.getItem('deepseek_api_key'),
   user: null,
 
   isAdmin: !!sessionStorage.getItem('admin_token'),
@@ -42,6 +51,21 @@ export const useAuthStore = create<AuthState>((set) => ({
     localStorage.setItem('pollinations_api_key', key)
     set({ isAuthenticated: true, apiKey: key, user: { name: 'Pollinator' } })
   },
+  
+  setGeminiApiKey: (key: string) => {
+    localStorage.setItem('gemini_api_key', key)
+    set({ geminiApiKey: key })
+  },
+  
+  setOpenAiApiKey: (key: string) => {
+    localStorage.setItem('openai_api_key', key)
+    set({ openAiApiKey: key })
+  },
+
+  setDeepseekApiKey: (key: string) => {
+    localStorage.setItem('deepseek_api_key', key)
+    set({ deepseekApiKey: key })
+  },
 
   loginAsAdmin: (token: string, user: AdminUser) => {
     sessionStorage.setItem('admin_token', token)
@@ -51,7 +75,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: () => {
     localStorage.removeItem('pollinations_api_key')
-    set({ isAuthenticated: false, apiKey: null, user: null })
+    localStorage.removeItem('gemini_api_key')
+    localStorage.removeItem('openai_api_key')
+    localStorage.removeItem('deepseek_api_key')
+    set({ isAuthenticated: false, apiKey: null, geminiApiKey: null, openAiApiKey: null, deepseekApiKey: null, user: null })
   },
 
   logoutAdmin: () => {

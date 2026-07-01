@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
 
-const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
 
 export function useAdminStats() {
   const { adminToken } = useAuthStore()
@@ -14,6 +14,12 @@ export function useAdminStats() {
           'Authorization': `Bearer ${adminToken}`
         }
       })
+      if (response.status === 401) {
+        const errorText = await response.text()
+        console.error('Admin API 401 Error:', errorText)
+        useAuthStore.getState().logoutAdmin()
+        throw new Error('Unauthorized')
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch admin stats')
       }
@@ -34,6 +40,10 @@ export function useAdminGenerations(limit = 50, offset = 0) {
           'Authorization': `Bearer ${adminToken}`
         }
       })
+      if (response.status === 401) {
+        useAuthStore.getState().logoutAdmin()
+        throw new Error('Unauthorized')
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch admin generations')
       }
@@ -56,6 +66,10 @@ export function useAdminList() {
           'Authorization': `Bearer ${adminToken}`
         }
       })
+      if (response.status === 401) {
+        useAuthStore.getState().logoutAdmin()
+        throw new Error('Unauthorized')
+      }
       if (!response.ok) {
         throw new Error('Failed to fetch admin list')
       }

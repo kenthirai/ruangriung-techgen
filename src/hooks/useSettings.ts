@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../stores/authStore'
 
-const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8787'
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://127.0.0.1:8788'
 
 export interface MaintenanceSettings {
   isActive: boolean
