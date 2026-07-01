@@ -4,7 +4,6 @@ import { useSiteSettings } from '../hooks/useSettings'
 
 export function Maintenance() {
   const { data } = useSiteSettings()
-  const settings = data?.maintenance
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-4">

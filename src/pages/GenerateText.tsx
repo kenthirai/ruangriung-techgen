@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { Loader2, MessageSquare, Send, History as HistoryIcon, Copy, Check, Trash2, Settings2 } from 'lucide-react'
 import { useGenerateText } from '../hooks/useGeneration'
-import { useHistory, useDeleteHistory, useClearHistory } from '../hooks/useHistory'
+import { useHistory } from '../hooks/useHistory'
 import { ModelSelector } from '../components/ModelSelector'
 // Removed ConfirmModal
 import ReactMarkdown from 'react-markdown'
@@ -54,14 +54,7 @@ export function GenerateText() {
     setTimeout(() => setCopiedIndex(null), 2000)
   }
 
-  const handleDelete = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    setDeleteTarget({ type: 'single', id })
-  }
 
-  const handleClearAll = () => {
-    setDeleteTarget({ type: 'all' })
-  }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -133,14 +126,7 @@ export function GenerateText() {
                       * Note: History is automatically deleted every 24 hours for privacy.
                     </p>
                   </div>
-                  <button
-                    onClick={handleClearAll}
-                    disabled={isClearing}
-                    className="text-xs text-red-400 hover:text-red-300 hover:bg-red-950/30 px-3 py-1.5 rounded-lg border border-transparent hover:border-red-900/50 transition-colors flex items-center gap-1.5"
-                  >
-                    {isClearing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                    Clear All
-                  </button>
+
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                   {textHistory.slice(0, 6).map((item: any) => (
@@ -153,14 +139,7 @@ export function GenerateText() {
                       <p className="text-xs text-zinc-500 line-clamp-3 mb-4">{item.result_url}</p>
                       <span className="text-[10px] text-zinc-600 uppercase font-bold mt-auto tracking-wider">{item.model}</span>
                       
-                      <button
-                        onClick={(e) => handleDelete(e, item.id)}
-                        disabled={isDeleting}
-                        className="absolute top-2 right-2 bg-zinc-900/80 hover:bg-red-500/80 p-1.5 rounded text-zinc-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+
                     </div>
                   ))}
                 </div>
